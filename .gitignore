@@ -1,15 +1,10 @@
-# Go
-bin/
+go.sum
+go.mod
 *.exe
-*.test
+*.log
 *.out
-vendor/
-
-# IDEs and editors
-.vscode/
-.idea/
-*.swp
-
-# OS
+*.tar.gz
+*.zip
+*.env
 .DS_Store
-Thumbs.db
+__pycache__/
