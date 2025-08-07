@@ -41,7 +41,7 @@ go get github.com/mustbeyuv/yt-fastmeta
 ```
 ## What You Get
 Every call returns clean, structured data:
-
+```
 - **Title** - Full video title
 - **Views** - View count (formatted)
 - **Duration** - Video length 
@@ -49,7 +49,7 @@ Every call returns clean, structured data:
 - **Upload Date** - When it was published
 - **Description** - Video description (truncated)
 - **Thumbnail** - High-quality thumbnail URL
-
+```
 ## CLI Options
 ```
 --url string      YouTube video URL 
