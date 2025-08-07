@@ -1,10 +1,12 @@
-go.sum
-go.mod
+# compiled files
+yt-fastmeta
 *.exe
-*.log
 *.out
-*.tar.gz
-*.zip
-*.env
-.DS_Store
-__pycache__/
+*.o
+
+# IDE
+.vscode/
+.idea/
+
+# Go stuff
+vendor/
