@@ -5,10 +5,10 @@ Stop waiting around for slow scrapers or dealing with YouTube API quotas. Get vi
 ```
 ## yt-fastmeta?
 ```
-**Fast.** Built in Go with zero external dependencies. No browser automation, no heavy libraries.
-**Simple.** One command. One import. Works everywhere Go works.
-**No API keys.** Skip the YouTube Data API entirely. No quotas, no registration, no hassle.
-**Flexible.** Use it from command line or import into your Go projects.
+Fast. Built in Go with zero external dependencies. No browser automation, no heavy libraries.
+Simple. One command. One import. Works everywhere Go works.
+No API keys. Skip the YouTube Data API entirely. No quotas, no registration, no hassle.
+Flexible. Use it from command line or import into your Go projects.
 ```
 
 ## Quick Start
