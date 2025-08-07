@@ -1,8 +1,8 @@
 # yt-fastmeta
-```
+
 The fastest way to grab YouTube metadata without API keys.
 Stop waiting around for slow scrapers or dealing with YouTube API quotas. Get video titles, views, duration, and more in milliseconds. Built for developers who need YouTube data *now*.
-```
+
 ## yt-fastmeta?
 
 **Fast.** Built in Go with zero external dependencies. No browser automation, no heavy libraries.
