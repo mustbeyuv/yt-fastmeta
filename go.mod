@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-module yt-fastmeta
+module github.com/mustbeyuv/yt-fastmeta
 =======
 module github.com/mustbeyuv/yt-fastmeta
 
