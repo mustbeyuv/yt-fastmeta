@@ -1,6 +1,6 @@
 # yt-fastmeta
 ```
-**The fastest way to grab YouTube metadata without API keys.**
+The fastest way to grab YouTube metadata without API keys.
 Stop waiting around for slow scrapers or dealing with YouTube API quotas. Get video titles, views, duration, and more in milliseconds. Built for developers who need YouTube data *now*.
 ```
 ## yt-fastmeta?
@@ -23,13 +23,10 @@ go install github.com/mustbeyuv/yt-fastmeta@latest
 ```bash
 # Get basic info
 yt-fastmeta --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-
 # Get specific fields only  
 yt-fastmeta --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --fields "title,views"
-
 # Full JSON output
 yt-fastmeta --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --json
-
 # Using video ID directly
 yt-fastmeta --id "dQw4w9WgXcQ"
 ```
@@ -41,7 +38,6 @@ go get github.com/mustbeyuv/yt-fastmeta
 ```
 ## What You Get
 Every call returns clean, structured data:
-```
 - **Title** - Full video title
 - **Views** - View count (formatted)
 - **Duration** - Video length 
@@ -49,7 +45,6 @@ Every call returns clean, structured data:
 - **Upload Date** - When it was published
 - **Description** - Video description (truncated)
 - **Thumbnail** - High-quality thumbnail URL
-```
 ## CLI Options
 ```
 --url string      YouTube video URL 
