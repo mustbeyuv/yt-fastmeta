@@ -11,7 +11,7 @@ import (
 	"github.com/mustbeyuv/yt-fastmeta/internal/search"
 )
 
-const version = "v0.1.0" 
+const version = "v0.1.0"
 
 func main() {
 	urlFlag := flag.String("url", "", "YouTube video URL to fetch metadata for")
@@ -36,6 +36,10 @@ func main() {
 		if err != nil {
 			log.Fatalf("search error: %v", err)
 		}
+		if len(results) == 0 {
+			log.Println("no results found for the search query")
+			os.Exit(1)
+		}
 		outputJSON(results)
 		return
 
@@ -50,6 +54,10 @@ func main() {
 		})
 		if err != nil {
 			log.Fatalf("scrape error: %v", err)
+		}
+		if meta.Title == "" && meta.Channel == "" {
+			log.Println("no metadata found for the provided URL")
+			os.Exit(1)
 		}
 		outputJSON(meta)
 		return
