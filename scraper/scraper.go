@@ -51,35 +51,42 @@ func ScrapeMetadata(videoURL string, fields Fields) (*Metadata, error) {
 	var f func(*html.Node)
 	f = func(n *html.Node) {
 		if n.Type == html.ElementNode {
-			if n.Data == "meta" {
-				props := getAttrs(n)
+			attrs := getAttrs(n)
 
-				switch props["property"] {
-				case "og:title":
-					if fields.Title {
-						meta.Title = props["content"]
-					}
-				case "og:image":
-					if fields.Thumbnail {
-						meta.Thumbnail = props["content"]
-					}
-				case "og:description":
-					if fields.Description {
-						meta.Description = props["content"]
-					}
+			// Extract from <meta> tags
+			if n.Data == "meta" {
+				if fields.Title && attrs["property"] == "og:title" && meta.Title == "" {
+					meta.Title = attrs["content"]
 				}
-			} else if n.Data == "link" {
-				attrs := getAttrs(n)
-				if attrs["itemprop"] == "name" && fields.Channel && meta.Channel == "" {
+				if fields.Thumbnail && attrs["property"] == "og:image" && meta.Thumbnail == "" {
+					meta.Thumbnail = attrs["content"]
+				}
+				if fields.Description && attrs["property"] == "og:description" && meta.Description == "" {
+					meta.Description = attrs["content"]
+				}
+				if fields.UploadDate && attrs["itemprop"] == "uploadDate" && meta.UploadDate == "" {
+					meta.UploadDate = attrs["content"]
+				}
+				if fields.Views && attrs["itemprop"] == "interactionCount" && meta.Views == "" {
+					meta.Views = attrs["content"]
+				}
+				if fields.Channel && attrs["itemprop"] == "name" && meta.Channel == "" {
+					meta.Channel = attrs["content"]
+				}
+			}
+
+			// Also check <link> tag for channel (some pages do this)
+			if fields.Channel && n.Data == "link" {
+				if attrs["itemprop"] == "name" && meta.Channel == "" {
 					meta.Channel = attrs["content"]
 				}
 			}
 		}
+
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			f(c)
 		}
 	}
-
 	f(doc)
 
 	return meta, nil
