@@ -10,3 +10,6 @@ yt-fastmeta
 
 # Go stuff
 vendor/
+
+test.go
+go1.23.5.linux-amd64.tar.gz
