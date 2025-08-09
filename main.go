@@ -56,7 +56,6 @@ func main() {
 		if err != nil {
 			log.Fatalf("scrape error: %v", err)
 		}
-		// Check if we got any meaningful data in requested fields
 		if isEmptyMetadata(meta, fields) {
 			log.Println("no metadata found for the provided URL")
 			os.Exit(1)
@@ -91,7 +90,6 @@ func parseFields(fieldsStr string) scraper.Fields {
 }
 
 func isEmptyMetadata(meta *scraper.Metadata, fields scraper.Fields) bool {
-	// Return true if all requested fields are empty strings
 	if fields.Title && meta.Title != "" {
 		return false
 	}
@@ -121,7 +119,6 @@ func output(v interface{}, jsonOut bool) {
 			log.Fatalf("json error: %v", err)
 		}
 	} else {
-		// Plain text fallback for Metadata or []string (search results)
 		switch val := v.(type) {
 		case *scraper.Metadata:
 			fmt.Println("Metadata:")
@@ -152,7 +149,6 @@ func output(v interface{}, jsonOut bool) {
 			}
 
 		default:
-			// Unknown type fallback
 			fmt.Printf("%v\n", val)
 		}
 	}
@@ -162,15 +158,15 @@ func printHelp() {
 	fmt.Println(`yt-fastmeta - A fast YouTube metadata fetcher
 
 Usage:
-  yt-fastmeta --url "<youtube_video_url>" [--fields "title,views"] [--json=true|false]
-  yt-fastmeta --search "lofi chill" --limit 3 [--json=true|false]
+  yt-fastmeta --url "<youtube_video_url>" [--fields "title,views"] [--json]
+  yt-fastmeta --search "lofi chill" --limit 3 [--json]
 
 Flags:
   --url       YouTube video URL
   --search    YouTube search query
   --limit     Number of results to fetch (default 1)
   --fields    Comma-separated list of metadata fields to fetch (title,channel,views,uploadDate,description,thumbnail)
-  --json      Output format: true for JSON (default), false for plain text
+  --json      Output in JSON format (default true)
   --version   Print tool version
   --help      Show this help message
 `)

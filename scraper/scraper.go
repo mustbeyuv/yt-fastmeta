@@ -1,25 +1,14 @@
 package scraper
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"regexp"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
-// Metadata holds video metadata
-type Metadata struct {
-	Title       string
-	Channel     string
-	Views       string
-	UploadDate  string
-	Description string
-	Thumbnail   string
-	URL         string
-}
-
-// Fields specifies which metadata fields the user wants
 type Fields struct {
 	Title       bool
 	Channel     bool
@@ -29,74 +18,116 @@ type Fields struct {
 	Thumbnail   bool
 }
 
-// ScrapeMetadata fetches YouTube metadata selectively based on requested fields
-func ScrapeMetadata(videoURL string, fields Fields) (*Metadata, error) {
-	resp, err := http.Get(videoURL)
+type Metadata struct {
+	Title       string `json:"title,omitempty"`
+	Channel     string `json:"channel,omitempty"`
+	Views       string `json:"views,omitempty"`
+	UploadDate  string `json:"uploadDate,omitempty"`
+	Description string `json:"description,omitempty"`
+	Thumbnail   string `json:"thumbnail,omitempty"`
+	URL         string `json:"url,omitempty"`
+}
+
+func ScrapeMetadata(url string, fields Fields) (*Metadata, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch URL: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status code: %d", resp.StatusCode)
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	doc, err := html.Parse(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read body: %w", err)
 	}
 
-	meta := &Metadata{URL: videoURL}
+	body := string(bodyBytes)
+	meta := &Metadata{URL: url}
 
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode {
-			attrs := getAttrs(n)
-
-			// Extract from <meta> tags
-			if n.Data == "meta" {
-				if fields.Title && attrs["property"] == "og:title" && meta.Title == "" {
-					meta.Title = attrs["content"]
-				}
-				if fields.Thumbnail && attrs["property"] == "og:image" && meta.Thumbnail == "" {
-					meta.Thumbnail = attrs["content"]
-				}
-				if fields.Description && attrs["property"] == "og:description" && meta.Description == "" {
-					meta.Description = attrs["content"]
-				}
-				if fields.UploadDate && attrs["itemprop"] == "uploadDate" && meta.UploadDate == "" {
-					meta.UploadDate = attrs["content"]
-				}
-				if fields.Views && attrs["itemprop"] == "interactionCount" && meta.Views == "" {
-					meta.Views = attrs["content"]
-				}
-				if fields.Channel && attrs["itemprop"] == "name" && meta.Channel == "" {
-					meta.Channel = attrs["content"]
-				}
-			}
-
-			// Also check <link> tag for channel (some pages do this)
-			if fields.Channel && n.Data == "link" {
-				if attrs["itemprop"] == "name" && meta.Channel == "" {
-					meta.Channel = attrs["content"]
-				}
-			}
-		}
-
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
+	// Title
+	if fields.Title {
+		if title := extract(body, `"title":{"runs":\[{"text":"(.*?)"}`); title != "" {
+			meta.Title = htmlUnescape(title)
 		}
 	}
-	f(doc)
+
+	// Channel
+	if fields.Channel {
+		if channel := extract(body, `"ownerChannelName":"(.*?)"`); channel != "" {
+			meta.Channel = htmlUnescape(channel)
+		} else if channel := extract(body, `"channelName":{"simpleText":"(.*?)"`); channel != "" {
+			meta.Channel = htmlUnescape(channel)
+		}
+	}
+
+	// Views (more robust pattern)
+	if fields.Views {
+		if views := extract(body, `"viewCount":"(\d+)"`); views != "" {
+			meta.Views = views
+		} else if views := extract(body, `"viewCountText":{"simpleText":"([\d,]+) views"`); views != "" {
+			meta.Views = strings.ReplaceAll(views, ",", "")
+		} else if views := extract(body, `"shortViewCountText":{"simpleText":"(.*?) views"`); views != "" {
+			meta.Views = views
+		}
+	}
+
+	// Upload Date
+	if fields.UploadDate {
+		if date := extract(body, `"dateText":{"simpleText":"(.*?)"`); date != "" {
+			meta.UploadDate = date
+		}
+	}
+
+	// Description
+	if fields.Description {
+		if desc := extract(body, `"description":{"simpleText":"(.*?)"`); desc != "" {
+			meta.Description = htmlUnescape(desc)
+		}
+	}
+
+	// Thumbnail
+	if fields.Thumbnail {
+		if thumb := extract(body, `"thumbnail":{"thumbnails":\[{"url":"(.*?)"`); thumb != "" {
+			meta.Thumbnail = thumb
+		}
+	}
+
+	if isAllEmpty(meta) {
+		return nil, errors.New("no metadata found")
+	}
 
 	return meta, nil
 }
 
-// getAttrs converts node attributes to map
-func getAttrs(n *html.Node) map[string]string {
-	attrs := make(map[string]string)
-	for _, a := range n.Attr {
-		attrs[strings.ToLower(a.Key)] = a.Val
+// extract finds the first match for a regex pattern in the given text.
+func extract(text, pattern string) string {
+	re := regexp.MustCompile(pattern)
+	match := re.FindStringSubmatch(text)
+	if len(match) > 1 {
+		return match[1]
 	}
-	return attrs
+	return ""
+}
+
+func htmlUnescape(s string) string {
+	r := strings.NewReplacer(
+		`&amp;`, "&",
+		`&lt;`, "<",
+		`&gt;`, ">",
+		`&quot;`, `"`,
+		`&#39;`, "'",
+	)
+	return r.Replace(s)
+}
+
+func isAllEmpty(meta *Metadata) bool {
+	return meta.Title == "" &&
+		meta.Channel == "" &&
+		meta.Views == "" &&
+		meta.UploadDate == "" &&
+		meta.Description == "" &&
+		meta.Thumbnail == ""
 }
